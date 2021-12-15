@@ -29,26 +29,10 @@ function log(message) {
     }
 }
 
-function clickYtSkipBtn() {
-    if (!isAdPlaying()) {
-        clearInterval(clickSkipInterval)
-        clickSkipInterval = null
-        removeSkipBtn()
-        return
-    }
-    log('clicking skip button...')
-    let ytSkipBtns = document.getElementsByClassName('ytp-ad-skip-button')
-    Array.from(ytSkipBtns).forEach(b => b.click())
-}
-
 function skip(videoNode) {
     log('skipping ad...')
-    videoNode.muted = true
-    videoNode.playbackRate = 16
-    videoNode.play()
-    if (!clickSkipInterval) {
-        clickSkipInterval = setInterval(clickYtSkipBtn, 300)
-    }
+    videoNode.currentTime = videoNode.duration
+    removeSkipBtn()
 }
 
 function removeSkipBtn() {
@@ -71,7 +55,7 @@ function closeBanners() {
 
 function check() {
     log('checking for ads...')
-    if (isAdPlaying() && !clickSkipInterval) {
+    if (!skipBtnActive && isAdPlaying()) {
         document.querySelectorAll('video').forEach(v => {
             if (autoSkip) {
                 log('autoskipping...')
