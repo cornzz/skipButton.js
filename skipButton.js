@@ -1,4 +1,4 @@
-let skipBtn = document.createElement('div')
+const skipBtn = document.createElement('div')
 skipBtn.classList.add('customSkipBtn')
 skipBtn.style = `
     position: absolute;
@@ -18,7 +18,7 @@ skipBtn.innerText = 'Skip >'
 let autoSkip = false
 let skipBtnActive = false
 let clickSkipInterval = null
-let autoCloseBanners = true
+let hideBanners = true
 let logging = true
 
 const observer = new MutationObserver(() => check())
@@ -37,7 +37,7 @@ function clickYtSkipBtn() {
         return
     }
     log('clicking skip button...')
-    let ytSkipBtns = document.getElementsByClassName('ytp-ad-skip-button')
+    const ytSkipBtns = document.getElementsByClassName('ytp-ad-skip-button')
     Array.from(ytSkipBtns).forEach(b => b.click())
 }
 
@@ -60,7 +60,7 @@ function isAdPlaying() {
 }
 
 function closeBanners() {
-    let bannerBtns = document.getElementsByClassName('ytp-ad-overlay-close-button')
+    const bannerBtns = document.getElementsByClassName('ytp-ad-overlay-close-button')
     Array.from(bannerBtns).forEach(btn => {
         log('closing banner...')
         btn.click()
@@ -76,9 +76,9 @@ function check() {
                 skip(v)
             } else if (!skipBtnActive) {
                 log('adding skip button...')
-                let thisSkipBtn = skipBtn.cloneNode(true)
+                const thisSkipBtn = skipBtn.cloneNode(true)
                 thisSkipBtn.onclick = () => skip(v)
-                let rect = v.getBoundingClientRect()
+                const rect = v.getBoundingClientRect()
                 thisSkipBtn.style.top = `${String(rect.bottom - 250)}px`
                 thisSkipBtn.style.left = `${String(rect.right - 100)}px`
                 document.body.appendChild(thisSkipBtn)
@@ -88,8 +88,18 @@ function check() {
     } else if (skipBtnActive && !isAdPlaying()) {
         removeSkipBtn()
     }
-    if (autoCloseBanners) {
+    if (hideBanners) {
         closeBanners()
+    }
+}
+
+function updateSettings(changes) {
+    if (Object.keys(changes).includes('skipButtonSettings')) {
+        let settings = changes.skipButtonSettings.newValue
+        log(`settings updated: autoSkip=${settings.autoSkip}, hideBanners=${settings.hideBanners}`)
+        autoSkip = settings.autoSkip
+        hideBanners = settings.hideBanners
+        check()
     }
 }
 
@@ -97,11 +107,22 @@ function init() {
     // This element contains ad videos and banners -> check for ads every time it changes
     const adContainer = document.getElementsByClassName('video-ads')[0]
     if (adContainer) {
-        clearInterval(initInterval)
         log('found ad container, initialising...')
+        clearInterval(initInterval)
         observer.observe(adContainer, { childList: true })
-        check()
+        browser.storage.sync.get('skipButtonSettings').then(obj => {
+            if (Object.keys(obj).length !== 0) {
+                let settings = obj.skipButtonSettings
+                log(`settings loaded: autoSkip=${settings.autoSkip}, hideBanners=${settings.hideBanners}`)
+                autoSkip = settings.autoSkip
+                hideBanners = settings.hideBanners
+            }
+            check()
+        })
+
     }
 }
 
-let initInterval = setInterval(init, 1000)
+const initInterval = setInterval(init, 1000)
+log('loaded skipButton.js.')
+browser.storage.onChanged.addListener(updateSettings);

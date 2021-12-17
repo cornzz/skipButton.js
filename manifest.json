@@ -1,0 +1,31 @@
+{
+    "name": "skipButton.js",
+    "description": "Skip any ad on youtube!",
+    "version": "1.0",
+    "manifest_version": 2,
+    "permissions": [
+        "storage"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "*://*.youtube.com/*",
+                "*://youtube.com/*"
+            ],
+            "js": [
+                "browser-polyfill.min.js",
+                "skipButton.js"
+            ]
+        }
+    ],
+    "browser_action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "48": "icon.svg"
+        }
+    },
+    "icons": {
+        "48": "icon.svg",
+        "96": "icon.svg"
+    }
+}
