@@ -15,6 +15,7 @@ skipBtn.style = `
 `
 skipBtn.innerText = 'Skip >'
 
+let initInterval = null
 let autoSkip = false
 let skipBtnActive = false
 let clickSkipInterval = null
@@ -124,6 +125,10 @@ function init() {
     }
 }
 
-const initInterval = setInterval(init, 1000)
 log('loaded skipButton.js.')
+const url = window.location.toString()
+if (/.*(\/|\.)youtube\..*/.test(url)) {
+    log('detected youtube domain, waiting for ad container...')
+    initInterval = setInterval(init, 1000)
+}
 browser.storage.onChanged.addListener(updateSettings);
