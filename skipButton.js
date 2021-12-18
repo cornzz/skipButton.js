@@ -30,14 +30,15 @@ function log(message) {
 }
 
 function clickYtSkipBtn() {
-    if (!isAdPlaying()) {
+    log('attempting to click skip...')
+    const ytSkipBtns = document.getElementsByClassName('ytp-ad-skip-button')
+    if (Array.from(ytSkipBtns).length === 0) {
         clearInterval(clickSkipInterval)
         clickSkipInterval = null
         removeSkipBtn()
         return
     }
     log('clicking skip button...')
-    const ytSkipBtns = document.getElementsByClassName('ytp-ad-skip-button')
     Array.from(ytSkipBtns).forEach(b => b.click())
 }
 
