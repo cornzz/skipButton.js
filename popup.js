@@ -13,12 +13,22 @@ function updateStorage() {
     browser.storage.sync.set({ skipButtonSettings: { autoSkip: autoSkip, hideBanners: hideBanners }})
 }
 
+function sendManualSkip() {
+    browser.tabs.query({
+        active: true,
+        currentWindow: true
+    }).then(tabs => tabs.forEach(t => {
+        browser.tabs.executeScript(t.id, { code: 'manualSkip()' })
+    }))
+}
+
 // Default settings
 let autoSkip = false
 let hideBanners = true
 
 let autoSkipCheck = document.getElementById('autoSkip')
 let hideBannersCheck = document.getElementById('hideBanners')
+let manualSkipBtn = document.getElementById('manualSkip')
 browser.storage.sync.get('skipButtonSettings').then(obj => {
     if (Object.keys(obj).length !== 0) {
         let settings = obj.skipButtonSettings
@@ -34,14 +44,4 @@ browser.storage.sync.get('skipButtonSettings').then(obj => {
 
 autoSkipCheck.addEventListener('input', setAutoSkip)
 hideBannersCheck.addEventListener('input', setHideBanners)
-
-function logStorageChange(changes) {
-  
-    let changedItems = Object.keys(changes);
-    console.log(changes)
-    // for (let item of changes) {
-    //   console.log(item);
-    // }
-  }
-  
-  browser.storage.onChanged.addListener(logStorageChange);
+manualSkipBtn.addEventListener('click', sendManualSkip)

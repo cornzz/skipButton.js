@@ -15,12 +15,13 @@ skipBtn.style = `
 `
 skipBtn.innerText = 'Skip >'
 
-let initInterval = null
-let autoSkip = false
-let skipBtnActive = false
-let clickSkipInterval = null
-let hideBanners = true
 let logging = true
+let autoSkip = false
+let hideBanners = true
+let isYoutube = false
+let initInterval = null
+let clickSkipInterval = null
+let skipBtnActive = false
 
 const observer = new MutationObserver(() => check())
 
@@ -31,7 +32,7 @@ function log(message) {
 }
 
 function clickYtSkipBtn() {
-    log('attempting to click skip...')
+    log('attempting to click yt skip button...')
     const ytSkipBtns = document.getElementsByClassName('ytp-ad-skip-button')
     if (Array.from(ytSkipBtns).length === 0) {
         clearInterval(clickSkipInterval)
@@ -39,21 +40,21 @@ function clickYtSkipBtn() {
         removeSkipBtn()
         return
     }
-    log('clicking skip button...')
-    Array.from(ytSkipBtns).forEach(b => b.click())
+    log('clicking yt skip button...')
+    Array.from(ytSkipBtns).forEach(btn => btn.click())
 }
 
 function skip(videoNode) {
     log('skipping ad...')
     videoNode.currentTime = videoNode.duration
-    if (!clickSkipInterval) {
+    if (isYoutube && !clickSkipInterval) {
         clickSkipInterval = setInterval(clickYtSkipBtn, 300)
     }
 }
 
 function removeSkipBtn() {
     Array.from(document.getElementsByClassName('customSkipBtn'))
-        .forEach(btn => btn.remove())
+         .forEach(btn => btn.remove())
     skipBtnActive = false
 }
 
@@ -71,7 +72,7 @@ function closeBanners() {
 
 function check() {
     log('checking for ads...')
-    if (!skipBtnActive && isAdPlaying() && !clickSkipInterval) {
+    if (isAdPlaying() && !clickSkipInterval) {
         document.querySelectorAll('video').forEach(v => {
             if (autoSkip) {
                 log('autoskipping...')
@@ -105,8 +106,15 @@ function updateSettings(changes) {
     }
 }
 
+function manualSkip() {
+    log('manual skip...')
+    document.querySelectorAll('video').forEach(v => {
+        skip(v)
+    })
+}
+
 function init() {
-    // This element contains ad videos and banners -> check for ads every time it changes
+    // This element contains yt ad videos and banners -> check for ads every time it changes
     const adContainer = document.getElementsByClassName('video-ads')[0]
     if (adContainer) {
         log('found ad container, initialising...')
@@ -121,14 +129,14 @@ function init() {
             }
             check()
         })
-
     }
 }
 
 log('loaded skipButton.js.')
 const url = window.location.toString()
-if (/.*(\/|\.)youtube\..*/.test(url)) {
+isYoutube = /.*(\/|\.)youtube\..*/.test(url)
+if (isYoutube) {
     log('detected youtube domain, waiting for ad container...')
     initInterval = setInterval(init, 1000)
 }
-browser.storage.onChanged.addListener(updateSettings);
+browser.storage.onChanged.addListener(updateSettings)

@@ -1,42 +1,53 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <style>
-        .wrapper {
-            display: flex;
-            flex-direction: column;
-        }
+    <head>
+        <style>
+            .wrapper {
+                display: flex;
+                flex-direction: column;
+            }
 
-        input {
-            margin-right: 10px;
-        }
+            .wrapper > * + * {
+                margin-top: 10px
+            }
 
-        label {
-            display: flex;
-            align-items: center;
-            white-space: nowrap;
-            cursor: pointer;
-        } 
-        
-        label + label {
-            margin-top: 10px;
-        }
-    </style>
-</head>
+            input {
+                margin-right: 10px;
+                cursor: pointer;
+            }
 
-<body>
-    <div class="wrapper">
-        <label>
-            <input type="checkbox" id="autoSkip" />
-            Auto Skip
-        </label>
-        <label>
-            <input type="checkbox" id="hideBanners">
-            Hide Banners
-        </label>
-    </div>
-</body>
+            label {
+                display: flex;
+                align-items: center;
+                white-space: nowrap;
+                cursor: pointer;
+            }
 
-<script src="browser-polyfill.min.js"></script>
-<script src="popup.js"></script>
+            button {
+                padding: 5px;
+                border: 1px solid grey;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="wrapper">
+            <label>
+                <input type="checkbox" id="autoSkip" />
+                Auto Skip
+            </label>
+            <label>
+                <input type="checkbox" id="hideBanners">
+                Hide Banners
+            </label>
+            <button id="manualSkip">
+                Manual Skip
+            </button>
+        </div>
+    </body>
+
+    <script src="browser-polyfill.min.js"></script>
+    <script src="popup.js"></script>
 </html>
