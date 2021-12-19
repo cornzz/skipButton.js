@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 96" width="600" height="96">
+  <circle cx="48" cy="48" r="48" fill="red"/>
+  <text x="31" y="64" class="text" fill="white" style="font-size: 65px;">></text>
+  <text x="120" y="70" class="text" fill="white" stroke="black" style="font-size: 75px; font-family: 'Open Sans', sans-serif">skipButton.js</text>
+</svg>

@@ -15,7 +15,7 @@ skipBtn.style = `
 `
 skipBtn.innerText = 'Skip >'
 
-let logging = true
+let logging = true  // Todo: change this
 let autoSkip = false
 let hideBanners = true
 let isYoutube = false
@@ -82,7 +82,7 @@ function check() {
                 const thisSkipBtn = skipBtn.cloneNode(true)
                 thisSkipBtn.onclick = () => skip(v)
                 const rect = v.getBoundingClientRect()
-                thisSkipBtn.style.top = `${String(rect.bottom - 250)}px`
+                thisSkipBtn.style.top = `${String(rect.bottom - 200)}px`
                 thisSkipBtn.style.left = `${String(rect.right - 100)}px`
                 document.body.appendChild(thisSkipBtn)
                 skipBtnActive = true
