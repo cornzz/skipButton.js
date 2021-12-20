@@ -1,4 +1,4 @@
-<img src="images/header.svg">
+<img src="images/banner.svg">
 
 # What it does
 
@@ -11,7 +11,10 @@
 
 skipButton.js can be installed through the [Chrome Webstore](), [Addons for Firefox]() or downloaded from the [releases page]() and installed manually.
 
-It has two settings which can be accessed through its popup menu [2]:
+When the extension is active, the red skip button will appear whenever there is a YouTube ad playing.
+On other websites, ads can be skipped with the Manual Skip button in the extension popup menu.
+
+There are two settings which can be accessed through the popup: 
 - *Auto Skip* causes YouTube ads to be skipped without requiring the skip button to be pressed
 - *Hide Banners* causes YouTube ad banners to be closed automatically
 
@@ -19,4 +22,4 @@ The *Manual Skip* button attempts to skip any video currrently being played on t
 
 [1]      | [2]
 :-------:|:-------:
-<img src="images/skipbutton.png" height=200> | <img src="images/popup.png">
+<img src="images/skipbutton.png"> | <img src="images/popup.png">
