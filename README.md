@@ -9,7 +9,7 @@
 
 # How to use
 
-skipButton.js can be installed through the [Chrome Webstore](), [Addons for Firefox]() or downloaded from the [releases page]() and installed manually.
+skipButton.js can be installed through the [Chrome Webstore]() or [Addons for Firefox](https://addons.mozilla.org/de/firefox/addon/skipbutton-js/) or downloaded from the [releases page](https://github.com/cornzz/skipButton.js/releases) and installed manually.
 
 When the extension is active, the red skip button will appear whenever there is a YouTube ad playing.
 On other websites, ads can be skipped with the Manual Skip button in the extension popup menu.
