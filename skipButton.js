@@ -15,7 +15,7 @@ skipBtn.style = `
 `
 skipBtn.innerText = 'Skip >'
 
-let logging = true  // Todo: change this
+let logging = false
 let autoSkip = false
 let hideBanners = true
 let isYoutube = false
@@ -33,15 +33,15 @@ function log(message) {
 
 function clickYtSkipBtn() {
     log('attempting to click yt skip button...')
-    const ytSkipBtns = document.getElementsByClassName('ytp-ad-skip-button')
-    if (Array.from(ytSkipBtns).length === 0) {
+    const ytSkipBtns = document.querySelectorAll('.ytp-ad-skip-button')
+    if (ytSkipBtns.length === 0) {
         clearInterval(clickSkipInterval)
         clickSkipInterval = null
         removeSkipBtn()
         return
     }
     log('clicking yt skip button...')
-    Array.from(ytSkipBtns).forEach(btn => btn.click())
+    ytSkipBtns.forEach(btn => btn.click())
 }
 
 function skip(videoNode) {
@@ -53,18 +53,18 @@ function skip(videoNode) {
 }
 
 function removeSkipBtn() {
-    Array.from(document.getElementsByClassName('customSkipBtn'))
-         .forEach(btn => btn.remove())
+    const skipBtns = document.querySelectorAll('.customSkipBtn')
+    skipBtns.forEach(btn => btn.remove())
     skipBtnActive = false
 }
 
 function isAdPlaying() {
-    return document.getElementsByClassName('ytp-ad-player-overlay').length !== 0
+    return document.querySelectorAll('.ytp-ad-player-overlay').length !== 0
 }
 
 function closeBanners() {
-    const bannerBtns = document.getElementsByClassName('ytp-ad-overlay-close-button')
-    Array.from(bannerBtns).forEach(btn => {
+    const bannerBtns = document.querySelectorAll('.ytp-ad-overlay-close-button')
+    bannerBtns.forEach(btn => {
         log('closing banner...')
         btn.click()
     })
@@ -111,6 +111,13 @@ function manualSkip() {
     document.querySelectorAll('video').forEach(v => {
         skip(v)
     })
+    // Propagate to all child iframes
+    document.querySelectorAll('iframe').forEach(i => {
+        const iframeWindow = i.contentWindow
+        if (iframeWindow) {
+            iframeWindow.postMessage('manualSkip', '*')
+        }
+    })
 }
 
 function init() {
@@ -132,7 +139,7 @@ function init() {
     }
 }
 
-log('loaded skipButton.js.')
+console.log('loaded skipButton.js.')
 const url = window.location.toString()
 isYoutube = /.*(\/|\.)youtube\..*/.test(url)
 if (isYoutube) {
@@ -140,3 +147,4 @@ if (isYoutube) {
     initInterval = setInterval(init, 1000)
 }
 browser.storage.onChanged.addListener(updateSettings)
+window.addEventListener('message', message => { if (message.data === 'manualSkip') manualSkip() })
