@@ -15,7 +15,7 @@ When the extension is active, the red skip button will appear whenever there is 
 On other websites, ads can be skipped with the Manual Skip button in the extension popup menu.
 
 There are two settings which can be accessed through the popup: 
-- *Auto Skip* causes YouTube ads to be skipped without requiring the skip button to be pressed
+- *Auto Skip* causes YouTube ads to be skipped without requiring the skip button to be clicked
 - *Hide Banners* causes YouTube ad banners to be closed automatically
 
 The *Manual Skip* button attempts to skip any video currrently being played on the page, allowing ads to be skipped on any other website.
