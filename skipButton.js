@@ -145,7 +145,7 @@ const url = window.location.toString()
 isYoutube = /.*(\/|\.)youtube\..*/.test(url)
 if (isYoutube) {
     log('detected youtube domain, waiting for ad container...')
-    initInterval = setInterval(init, 1000)
+    initInterval = setInterval(init, 300)
 }
 browser.storage.onChanged.addListener(updateSettings)
 window.addEventListener('message', message => { if (message.data === 'manualSkip') manualSkip() })
