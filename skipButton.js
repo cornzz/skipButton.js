@@ -25,7 +25,7 @@ let skipBtnActive = false
 
 const observer = new MutationObserver(() => check())
 
-function log(message) {
+function log(...message) {
     if (logging) {
         console.log(`# skipButton.js: ${message}`)
     }
