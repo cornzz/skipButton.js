@@ -15,6 +15,13 @@ skipBtn.style = `
 `
 skipBtn.innerText = 'Skip >'
 
+const dateOptions = {
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    fractionalSecondDigits: 3
+}
+
 let logging = false
 let autoSkip = false
 let hideBanners = true
@@ -27,7 +34,8 @@ const observer = new MutationObserver(() => check())
 
 function log(...message) {
     if (logging) {
-        console.log(`# skipButton.js: ${message}`)
+        const date = new Date()
+        console.log(`# skipButton.js # ${date.toLocaleString('de-DE', dateOptions)}: ${message}`)
     }
 }
 
@@ -45,10 +53,11 @@ function clickYtSkipBtn() {
 }
 
 function skip(videoNode) {
+    log('skipping ad...')
     if (videoNode.duration !== NaN) {
-    videoNode.currentTime = videoNode.duration
-    if (isYoutube && !clickSkipInterval) {
-        clickSkipInterval = setInterval(clickYtSkipBtn, 300)
+        videoNode.currentTime = videoNode.duration
+        if (isYoutube && !clickSkipInterval) {
+            clickSkipInterval = setInterval(clickYtSkipBtn, 300)
         }
     }
 }
