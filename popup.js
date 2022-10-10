@@ -17,8 +17,8 @@ function sendManualSkip() {
     browser.tabs.query({
         active: true,
         currentWindow: true
-    }).then(tabs => tabs.forEach(t => {
-        browser.tabs.executeScript(t.id, { code: 'manualSkip()' })
+    }).then(tabs => tabs.forEach(tab => {
+        browser.tabs.executeScript(tab.id, { code: 'manualSkip()' })
     }))
 }
 
@@ -29,12 +29,11 @@ let hideBanners = true
 let autoSkipCheck = document.getElementById('autoSkip')
 let hideBannersCheck = document.getElementById('hideBanners')
 let manualSkipBtn = document.getElementById('manualSkip')
-browser.storage.sync.get('skipButtonSettings').then(obj => {
-    if (Object.keys(obj).length !== 0) {
-        let settings = obj.skipButtonSettings
-        console.log('settings loaded:', settings)
-        autoSkip = settings.autoSkip
-        hideBanners = settings.hideBanners
+browser.storage.sync.get('skipButtonSettings').then(({ skipButtonSettings }) => {
+    if (skipButtonSettings) {
+        console.log('settings loaded:', skipButtonSettings)
+        autoSkip = skipButtonSettings.autoSkip
+        hideBanners = skipButtonSettings.hideBanners
     } else {
         updateStorage()
     }

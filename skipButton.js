@@ -1,6 +1,6 @@
-const skipBtn = document.createElement('div')
-skipBtn.classList.add('customSkipBtn')
-skipBtn.style = `
+const button = document.createElement('div')
+button.classList.add('customSkipBtn')
+button.style = `
     position: absolute;
     width: 100px;
     height: 40px;
@@ -13,7 +13,7 @@ skipBtn.style = `
     line-height: 40px;
     z-index: 1000;
 `
-skipBtn.innerText = 'Skip >'
+button.innerText = 'Skip >'
 
 const dateOptions = {
     hour: 'numeric',
@@ -27,8 +27,8 @@ let autoSkip = false
 let hideBanners = true
 let isYoutube = false
 let initInterval = null
-let clickSkipInterval = null
-let skipBtnActive = false
+let clickYTSkipInterval = null
+let buttonActive = false
 
 const observer = new MutationObserver(() => check())
 
@@ -39,91 +39,88 @@ function log(...message) {
     }
 }
 
-function clickYtSkipBtn() {
+function clickYTSkip() {
     log('attempting to click yt skip button...')
-    const ytSkipBtns = document.querySelectorAll('.ytp-ad-skip-button')
-    if (ytSkipBtns.length === 0) {
-        clearInterval(clickSkipInterval)
-        clickSkipInterval = null
-        removeSkipBtn()
-        return
+    const YTSkipButtons = document.querySelectorAll('.ytp-ad-skip-button')
+    if (YTSkipButtons.length === 0) {
+        clearInterval(clickYTSkipInterval)
+        clickYTSkipInterval = null
+    } else {
+        log('clicking yt skip button...')
+        YTSkipButtons.forEach(btn => btn.click())
     }
-    log('clicking yt skip button...')
-    ytSkipBtns.forEach(btn => btn.click())
 }
 
 function skip(videoNode) {
     log('skipping ad...')
-    if (videoNode.duration !== NaN) {
+    if (!isNaN(videoNode.duration)) {
         videoNode.currentTime = videoNode.duration
-        if (isYoutube && !clickSkipInterval) {
-            clickSkipInterval = setInterval(clickYtSkipBtn, 300)
+        if (isYoutube && !clickYTSkipInterval) {
+            clickYTSkipInterval = setInterval(clickYTSkip, 300)
         }
     }
 }
 
-function removeSkipBtn() {
-    const skipBtns = document.querySelectorAll('.customSkipBtn')
-    skipBtns.forEach(btn => btn.remove())
-    skipBtnActive = false
+function removeButtons() {
+    const buttons = document.querySelectorAll('.customSkipBtn')
+    buttons.forEach(button => button.remove())
+    buttonActive = false
 }
 
-function isAdPlaying() {
+function adPlaying() {
     return document.querySelectorAll('.ytp-ad-player-overlay').length !== 0
 }
 
 function closeBanners() {
     const bannerBtns = document.querySelectorAll('.ytp-ad-overlay-close-button')
     bannerBtns.forEach(btn => {
-        log('closing banner...')
+        log('hiding banner...')
         btn.click()
     })
 }
 
 function check() {
     log('checking for ads...')
-    if (isAdPlaying()) {
-        document.querySelectorAll('video').forEach(v => {
+    if (adPlaying()) {
+        document.querySelectorAll('video').forEach(video => {
             if (autoSkip) {
                 log('autoskipping...')
-                skip(v)
-            } else if (!skipBtnActive) {
+                skip(video)
+            } else if (!buttonActive) {
                 log('adding skip button...')
-                const thisSkipBtn = skipBtn.cloneNode(true)
-                thisSkipBtn.onclick = () => skip(v)
-                const rect = v.getBoundingClientRect()
-                thisSkipBtn.style.top = `${String(rect.bottom - 200)}px`
-                thisSkipBtn.style.left = `${String(rect.right - 100)}px`
-                document.body.appendChild(thisSkipBtn)
-                skipBtnActive = true
+                const newButton = button.cloneNode(true)
+                newButton.onclick = () => skip(video)
+                const rect = video.getBoundingClientRect()
+                console.log(rect)
+                newButton.style.top = `${String(rect.bottom - 200)}px`
+                newButton.style.left = `${String(rect.right - 100)}px`
+                document.body.appendChild(newButton)
+                buttonActive = true
             }
         })
-    } else if (skipBtnActive && !isAdPlaying()) {
-        removeSkipBtn()
+    } else if (buttonActive && !adPlaying()) {
+        removeButtons()
     }
     if (hideBanners) {
         closeBanners()
     }
 }
 
-function updateSettings(changes) {
-    if (Object.keys(changes).includes('skipButtonSettings')) {
-        let settings = changes.skipButtonSettings.newValue
-        log(`settings updated: autoSkip=${settings.autoSkip}, hideBanners=${settings.hideBanners}`)
-        autoSkip = settings.autoSkip
-        hideBanners = settings.hideBanners
-        check()
-    }
+function updateSettings(settings) {
+    log(`settings updated: autoSkip=${settings.autoSkip}, hideBanners=${settings.hideBanners}`)
+    autoSkip = settings.autoSkip
+    hideBanners = settings.hideBanners
+    check()
 }
 
 function manualSkip() {
     log('manual skip...')
-    document.querySelectorAll('video').forEach(v => {
-        skip(v)
+    document.querySelectorAll('video').forEach(video => {
+        skip(video)
     })
     // Propagate to all child iframes
-    document.querySelectorAll('iframe').forEach(i => {
-        const iframeWindow = i.contentWindow
+    document.querySelectorAll('iframe').forEach(iframe => {
+        const iframeWindow = iframe.contentWindow
         if (iframeWindow) {
             iframeWindow.postMessage('manualSkip', '*')
         }
@@ -137,14 +134,8 @@ function init() {
         log('found ad container, initialising...')
         clearInterval(initInterval)
         observer.observe(adContainer, { childList: true })
-        browser.storage.sync.get('skipButtonSettings').then(obj => {
-            if (Object.keys(obj).length !== 0) {
-                let settings = obj.skipButtonSettings
-                log(`settings loaded: autoSkip=${settings.autoSkip}, hideBanners=${settings.hideBanners}`)
-                autoSkip = settings.autoSkip
-                hideBanners = settings.hideBanners
-            }
-            check()
+        browser.storage.sync.get('skipButtonSettings').then(({ skipButtonSettings }) => {
+            if (skipButtonSettings) updateSettings(skipButtonSettings)
         })
     }
 }
@@ -157,5 +148,7 @@ if (isYoutube) {
     init()
     initInterval = setInterval(init, 300)
 }
-browser.storage.onChanged.addListener(updateSettings)
+browser.storage.onChanged.addListener(changes => {
+    if ('skipButtonSettings' in changes) updateSettings(changes.skipButtonSettings.newValue)
+})
 window.addEventListener('message', message => { if (message.data === 'manualSkip') manualSkip() })
