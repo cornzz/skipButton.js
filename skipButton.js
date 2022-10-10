@@ -45,10 +45,11 @@ function clickYtSkipBtn() {
 }
 
 function skip(videoNode) {
-    log('skipping ad...')
+    if (videoNode.duration !== NaN) {
     videoNode.currentTime = videoNode.duration
     if (isYoutube && !clickSkipInterval) {
         clickSkipInterval = setInterval(clickYtSkipBtn, 300)
+        }
     }
 }
 
