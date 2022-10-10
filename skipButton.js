@@ -73,7 +73,7 @@ function closeBanners() {
 
 function check() {
     log('checking for ads...')
-    if (isAdPlaying() && !clickSkipInterval) {
+    if (isAdPlaying()) {
         document.querySelectorAll('video').forEach(v => {
             if (autoSkip) {
                 log('autoskipping...')
