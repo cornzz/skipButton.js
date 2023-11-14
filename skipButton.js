@@ -78,12 +78,23 @@ function adPlaying() {
 }
 
 // Closes any open YouTube ad banners
-function closeBanners() {
+function hideBanners() {
     const bannerBtns = document.querySelectorAll('.ytp-ad-overlay-close-button')
     bannerBtns.forEach(btn => {
         log('hiding banner...')
         btn.click()
     })
+}
+
+// Hides sponsored videos from search results / main page
+function hideSponsored() {
+    if (settings.hideSponsored) {
+        const sponsoredVideos = Array.from(document.getElementsByTagName('ytd-ad-slot-renderer'))
+        sponsoredVideos.forEach(sponsored => {
+            log('hiding sponsored...')
+            sponsored.remove()
+        })
+    }
 }
 
 // Main check function, run on DOM mutations and settings updates
@@ -109,10 +120,7 @@ function check() {
         removeButtons()
     }
     if (settings.hideBanners) {
-        closeBanners()
-    }
-    if (settings.hideSponsored) {
-        // TODO
+        hideBanners()
     }
 }
 
@@ -154,11 +162,17 @@ function init() {
 console.log('loaded skipButton.js.')
 const url = window.location.toString()
 const isYoutube = /.*(\/|\.)youtube\..*/.test(url)
+let sponsoredInterval
 if (isYoutube) {
     log('detected youtube domain, waiting for ad container...')
     init()
     initInterval = setInterval(init, 300)
+    if (!sponsoredInterval) {
+        sponsoredInterval = setInterval(hideSponsored, 1000)
+    }
 }
+
+// Add event listeners for settings changes
 browser.storage.onChanged.addListener(changes => {
     if ('skipButtonSettings' in changes) updateSettings(changes.skipButtonSettings.newValue)
 })
