@@ -22,7 +22,7 @@ const dateOptions = {
     second: 'numeric',
     fractionalSecondDigits: 3
 }
-const logging = true
+const logging = false
 
 let settings = {
     autoSkip: false,
@@ -134,9 +134,7 @@ function updateSettings(newSettings) {
 // Manually skip any running video
 function manualSkip() {
     log('manual skip...')
-    document.querySelectorAll('video').forEach(video => {
-        skip(video)
-    })
+    document.querySelectorAll('video').forEach(video => skip(video))
     // Propagate to all child iframes
     document.querySelectorAll('iframe').forEach(iframe => {
         const iframeWindow = iframe.contentWindow
