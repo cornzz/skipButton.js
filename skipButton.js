@@ -15,22 +15,23 @@ button.style = `
 `
 button.innerText = 'Skip >'
 
+const observer = new MutationObserver(() => check())
 const dateOptions = {
     hour: 'numeric',
     minute: 'numeric',
     second: 'numeric',
     fractionalSecondDigits: 3
 }
+const logging = true
 
-let logging = false
-let autoSkip = false
-let hideBanners = true
-let isYoutube = false
+let settings = {
+    autoSkip: false,
+    hideBanners: true,
+    hideSponsored: true
+}
 let initInterval = null
 let clickYTSkipInterval = null
 let buttonActive = false
-
-const observer = new MutationObserver(() => check())
 
 function log(...message) {
     if (logging) {
@@ -39,18 +40,21 @@ function log(...message) {
     }
 }
 
+// Clicks the skip button if additional information is displayed after the video ad
 function clickYTSkip() {
     log('attempting to click yt skip button...')
+    // TODO: fix this (changed class: -modern?)
     const YTSkipButtons = document.querySelectorAll('.ytp-ad-skip-button')
     if (YTSkipButtons.length === 0) {
         clearInterval(clickYTSkipInterval)
         clickYTSkipInterval = null
     } else {
         log('clicking yt skip button...')
-        YTSkipButtons.forEach(btn => btn.click())
+        // YTSkipButtons.forEach(btn => btn.click())
     }
 }
 
+// Skips an ad video
 function skip(videoNode) {
     log('skipping ad...')
     if (!isNaN(videoNode.duration)) {
@@ -61,16 +65,19 @@ function skip(videoNode) {
     }
 }
 
+// Removes our custom skip button
 function removeButtons() {
     const buttons = document.querySelectorAll('.customSkipBtn')
     buttons.forEach(button => button.remove())
     buttonActive = false
 }
 
+// Checks if a YouTube ad is playing
 function adPlaying() {
     return document.querySelectorAll('.ytp-ad-player-overlay').length !== 0
 }
 
+// Closes any open YouTube ad banners
 function closeBanners() {
     const bannerBtns = document.querySelectorAll('.ytp-ad-overlay-close-button')
     bannerBtns.forEach(btn => {
@@ -79,19 +86,19 @@ function closeBanners() {
     })
 }
 
+// Main check function, run on DOM mutations and settings updates
 function check() {
     log('checking for ads...')
     if (adPlaying()) {
-        document.querySelectorAll('video').forEach(video => {
-            if (autoSkip) {
+        document.querySelectorAll('video').forEach(videoNode => {
+            if (settings.autoSkip) {
                 log('autoskipping...')
-                skip(video)
+                skip(videoNode)
             } else if (!buttonActive) {
                 log('adding skip button...')
                 const newButton = button.cloneNode(true)
-                newButton.onclick = () => skip(video)
-                const rect = video.getBoundingClientRect()
-                console.log(rect)
+                newButton.onclick = () => skip(videoNode)
+                const rect = videoNode.getBoundingClientRect()
                 newButton.style.top = `${String(rect.bottom - 200)}px`
                 newButton.style.left = `${String(rect.right - 100)}px`
                 document.body.appendChild(newButton)
@@ -101,18 +108,22 @@ function check() {
     } else if (buttonActive && !adPlaying()) {
         removeButtons()
     }
-    if (hideBanners) {
+    if (settings.hideBanners) {
         closeBanners()
+    }
+    if (settings.hideSponsored) {
+        // TODO
     }
 }
 
-function updateSettings(settings) {
-    log(`settings updated: autoSkip=${settings.autoSkip}, hideBanners=${settings.hideBanners}`)
-    autoSkip = settings.autoSkip
-    hideBanners = settings.hideBanners
+// Updates settings and runs check function
+function updateSettings(newSettings) {
+    log(`settings updated: ${JSON.stringify(newSettings)}`)
+    settings = newSettings
     check()
 }
 
+// Manually skip any running video
 function manualSkip() {
     log('manual skip...')
     document.querySelectorAll('video').forEach(video => {
@@ -142,7 +153,7 @@ function init() {
 
 console.log('loaded skipButton.js.')
 const url = window.location.toString()
-isYoutube = /.*(\/|\.)youtube\..*/.test(url)
+const isYoutube = /.*(\/|\.)youtube\..*/.test(url)
 if (isYoutube) {
     log('detected youtube domain, waiting for ad container...')
     init()

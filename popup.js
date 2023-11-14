@@ -1,16 +1,13 @@
-function setAutoSkip(event) {
-    autoSkip = event.target.checked
-    updateStorage()
-}
-
-function setHideBanners(event) {
-    hideBanners = event.target.checked
-    updateStorage()
+function setOption(option) {
+    return (event) => {
+        settings[option] = event.target.checked
+        updateStorage()
+    }
 }
 
 function updateStorage() {
-    console.log('update storage:', autoSkip, hideBanners)
-    browser.storage.sync.set({ skipButtonSettings: { autoSkip: autoSkip, hideBanners: hideBanners }})
+    console.log('update storage:', settings)
+    browser.storage.sync.set({ skipButtonSettings: settings })
 }
 
 function sendManualSkip() {
@@ -23,24 +20,30 @@ function sendManualSkip() {
 }
 
 // Default settings
-let autoSkip = false
-let hideBanners = true
+let settings = {
+    autoSkip: false,
+    hideBanners: true,
+    hideSponsored: true
+}
 
-let autoSkipCheck = document.getElementById('autoSkip')
-let hideBannersCheck = document.getElementById('hideBanners')
-let manualSkipBtn = document.getElementById('manualSkip')
+const autoSkipCheck = document.getElementById('autoSkip')
+const hideBannersCheck = document.getElementById('hideBanners')
+const hideSponsoredCheck = document.getElementById('hideSponsored')
+const manualSkipBtn = document.getElementById('manualSkip')
+
 browser.storage.sync.get('skipButtonSettings').then(({ skipButtonSettings }) => {
     if (skipButtonSettings) {
         console.log('settings loaded:', skipButtonSettings)
-        autoSkip = skipButtonSettings.autoSkip
-        hideBanners = skipButtonSettings.hideBanners
+        settings = skipButtonSettings
     } else {
         updateStorage()
     }
-    autoSkipCheck.checked = autoSkip
-    hideBannersCheck.checked = hideBanners
+    autoSkipCheck.checked = settings.autoSkip
+    hideBannersCheck.checked = settings.hideBanners
+    hideSponsoredCheck.checked = settings.hideSponsored
 })
 
-autoSkipCheck.addEventListener('input', setAutoSkip)
-hideBannersCheck.addEventListener('input', setHideBanners)
+autoSkipCheck.addEventListener('input', setOption('autoSkip'))
+hideBannersCheck.addEventListener('input', setOption('hideBanners'))
+hideSponsoredCheck.addEventListener('input', setOption('hideSponsored'))
 manualSkipBtn.addEventListener('click', sendManualSkip)
