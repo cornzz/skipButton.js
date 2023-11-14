@@ -43,14 +43,14 @@ function log(...message) {
 // Clicks the skip button if additional information is displayed after the video ad
 function clickYTSkip() {
     log('attempting to click yt skip button...')
-    // TODO: fix this (changed class: -modern?)
-    const YTSkipButtons = document.querySelectorAll('.ytp-ad-skip-button')
+    const YTSkipButtons = document.querySelectorAll('.ytp-ad-skip-button-modern')
+    const isAdditionalInfo = document.querySelectorAll('.ytp-ad-action-interstitial-background')?.length
     if (YTSkipButtons.length === 0) {
         clearInterval(clickYTSkipInterval)
         clickYTSkipInterval = null
-    } else {
+    } else if (isAdditionalInfo) {
         log('clicking yt skip button...')
-        // YTSkipButtons.forEach(btn => btn.click())
+        YTSkipButtons.forEach(btn => btn.click())
     }
 }
 
