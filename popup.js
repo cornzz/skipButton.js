@@ -22,12 +22,10 @@ function sendManualSkip() {
 // Default settings
 let settings = {
     autoSkip: false,
-    hideBanners: true,
     hideSponsored: true
 }
 
 const autoSkipCheck = document.getElementById('autoSkip')
-const hideBannersCheck = document.getElementById('hideBanners')
 const hideSponsoredCheck = document.getElementById('hideSponsored')
 const manualSkipBtn = document.getElementById('manualSkip')
 
@@ -39,11 +37,9 @@ browser.storage.sync.get('skipButtonSettings').then(({ skipButtonSettings }) => 
         updateStorage()
     }
     autoSkipCheck.checked = settings.autoSkip
-    hideBannersCheck.checked = settings.hideBanners
     hideSponsoredCheck.checked = settings.hideSponsored
 })
 
 autoSkipCheck.addEventListener('input', setOption('autoSkip'))
-hideBannersCheck.addEventListener('input', setOption('hideBanners'))
 hideSponsoredCheck.addEventListener('input', setOption('hideSponsored'))
 manualSkipBtn.addEventListener('click', sendManualSkip)
