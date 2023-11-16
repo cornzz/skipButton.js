@@ -28,7 +28,7 @@ const getSponsored = () => [
     ...document.getElementsByTagName('ytd-ad-slot-renderer'),
     ...document.getElementsByTagName('ytd-player-legacy-desktop-watch-ads-renderer')
 ]
-const log = (message, ...args) => console.log(`skipButton.js: ${message}`, ...args)
+const log = (message, ...args) => logging && console.log(`skipButton.js: ${message}`, ...args)
 
 let settings = {
     autoSkip: false,
@@ -162,7 +162,7 @@ function manualSkip() {
     })
 }
 
-log(`loaded (host: ${window.location.host})`)
+console.log(`skipButton.js: loaded (host: ${window.location.host})`)
 const isYoutube = /^https?:\/\/([a-z]+\.)?youtube\.com.*/.test(window.location.toString())
 if (isYoutube) {
     while (!init()) {}
@@ -170,6 +170,6 @@ if (isYoutube) {
 
 // Add event listeners for settings changes
 browser.storage.onChanged.addListener(changes => {
-    if (changes.skipButtonSettings) updateSettings(changes.skipButtonSettings.newValue)
+    if (isYoutube && changes.skipButtonSettings) updateSettings(changes.skipButtonSettings.newValue)
 })
 window.addEventListener('message', message => { if (message.data === 'manualSkip') manualSkip() })
