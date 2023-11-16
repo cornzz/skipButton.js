@@ -68,9 +68,6 @@ function check(mutations) {
     const sponsored = addedNodes.filter(node =>
         ['YTD-AD-SLOT-RENDERER', 'YTD-PLAYER-LEGACY-DESKTOP-WATCH-ADS-RENDERER'].includes(node.tagName)
     )
-    if (adStarted) log('@@@ STARTED')
-    if (adStopped) log('@@@ STOPPED')
-    if (adEndScreen) log('@@@ ENDSCREEN')
 
     if (adStarted) handleAd()
     if (adStopped && skipButton) {
@@ -81,8 +78,8 @@ function check(mutations) {
     if (sponsored.length) handleSponsored(sponsored)
 
     if (!initialCheck) {
+        // Check if ad was already playing before observer started
         log('initial check...')
-        // Check if ad already playing
         handleAd(true)
         initialCheck = true
     }
@@ -100,7 +97,6 @@ function handleAd(needToCheck) {
                 skipButton.onclick = () => skip(videoNode)
                 const target = videoNode.parentElement.parentElement
                 target.appendChild(skipButton)
-                console.log(videoNode, target, skipButton)
             }
         }
     }
@@ -154,13 +150,6 @@ async function init() {
 // Manually skip any running video
 function manualSkip() {
     document.querySelectorAll('video').forEach(video => skip(video))
-    // Propagate to all child iframes
-    document.querySelectorAll('iframe').forEach(iframe => {
-        const iframeWindow = iframe.contentWindow
-        if (iframeWindow) {
-            iframeWindow.postMessage('manualSkip', '*')
-        }
-    })
 }
 
 console.log(`skipButton.js: loaded (host: ${window.location.host})`)
@@ -173,4 +162,3 @@ if (isYoutube) {
 browser.storage.onChanged.addListener(changes => {
     if (isYoutube && changes.skipButtonSettings) updateSettings(changes.skipButtonSettings.newValue)
 })
-window.addEventListener('message', message => { if (message.data === 'manualSkip') manualSkip() })
