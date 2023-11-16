@@ -22,7 +22,7 @@ const dateOptions = {
     second: 'numeric',
     fractionalSecondDigits: 3
 }
-const logging = true
+const logging = false
 const adPlaying = () => document.querySelector('.ytp-ad-player-overlay') !== null
 const getSponsored = () => [
     ...document.getElementsByTagName('ytd-ad-slot-renderer'),
