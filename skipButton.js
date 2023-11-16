@@ -12,6 +12,8 @@ button.style = `
     font-size: 24px;
     line-height: 40px;
     z-index: 1000;
+    right: 0;
+    bottom: 130px;
 `
 button.innerText = 'Skip >'
 
@@ -93,13 +95,12 @@ function handleAd(needToCheck) {
         for (const videoNode of videoNodes) {
             if (settings.autoSkip) {
                 skip(videoNode)
-            } else if (!skipButton) {
+            } else if (!skipButton && !videoNode.paused) {
                 skipButton = button.cloneNode(true)
                 skipButton.onclick = () => skip(videoNode)
-                const rect = videoNode.getBoundingClientRect()
-                skipButton.style.top = `${String(rect.bottom - 200)}px`
-                skipButton.style.left = `${String(rect.right - 100)}px`
-                document.body.appendChild(skipButton)
+                const target = videoNode.parentElement.parentElement
+                target.appendChild(skipButton)
+                console.log(videoNode, target, skipButton)
             }
         }
     }
