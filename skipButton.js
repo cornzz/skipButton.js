@@ -17,19 +17,14 @@ button.style = `
 `
 button.innerText = 'Skip >'
 
-const observer = new MutationObserver(check)
-const dateOptions = {
-    hour: 'numeric',
-    minute: 'numeric',
-    second: 'numeric',
-    fractionalSecondDigits: 3
-}
 const logging = false
-const adPlaying = () => document.querySelector('.ytp-ad-player-overlay') !== null
-const getSponsored = () => [
-    ...document.getElementsByTagName('ytd-ad-slot-renderer'),
-    ...document.getElementsByTagName('ytd-player-legacy-desktop-watch-ads-renderer')
-]
+const observer = new MutationObserver(check)
+const AD_OVERLAY_CLASS = 'ytp-ad-player-overlay'
+const AD_ENDSCREEN_CLASS = 'ytp-ad-action-interstitial'
+const YT_SKIP_CLASS = 'ytp-ad-skip-button-modern'
+const SPONSORED_CLASSES = ['YTD-AD-SLOT-RENDERER', 'YTD-PLAYER-LEGACY-DESKTOP-WATCH-ADS-RENDERER']
+const adPlaying = () => document.querySelector(`.${AD_OVERLAY_CLASS}`) !== null
+const getSponsored = () => SPONSORED_CLASSES.flatMap(className => [...document.getElementsByTagName(className)])
 const log = (message, ...args) => logging && console.log(`skipButton.js: ${message}`, ...args)
 
 let settings = {
@@ -41,7 +36,7 @@ let initialCheck = false
 
 // Skips an ad video
 function skip(videoNode) {
-    log('skipping...', videoNode)
+    log('skipping...')
     if (!isNaN(videoNode.duration)) {
         videoNode.currentTime = videoNode.duration
     }
@@ -49,25 +44,25 @@ function skip(videoNode) {
 
 // Main check function, run on DOM mutations
 function check(mutations) {
-    const [addedNodes, removedNodes] =
-        mutations
-            .filter(mutation => mutation.type === 'childList')
-            .reduce(([added, removed], mutation) => [
+    const [addedNodes, removedNodes] = mutations.reduce(
+        ([added, removed], mutation) => {
+            return mutation.type !== 'childList' ? [added, removed] : [
                 [...added, ...mutation.addedNodes],
                 [...removed, ...mutation.removedNodes]
-            ], [[], []])
+            ]
+        },
+        [[], []]
+    )
     const adStarted = addedNodes.some(node =>
-        node.classList?.contains('ytp-ad-player-overlay') ||
-        node.id === 'movie_player' && node.querySelector('.ytp-ad-player-overlay')
+        node.classList?.contains(AD_OVERLAY_CLASS) ||
+        node.id === 'movie_player' && node.querySelector(`.${AD_OVERLAY_CLASS}`)
     )
-    const adStopped = removedNodes.some(node => node.classList?.contains('ytp-ad-player-overlay'))
+    const adStopped = removedNodes.some(node => node.classList?.contains(AD_OVERLAY_CLASS))
     const adEndScreen = addedNodes.some(node =>
-        node.classList?.contains('ytp-ad-action-interstitial') ||
-        node.id === 'movie_player' && node.querySelector('.ytp-ad-action-interstitial')
+        node.classList?.contains(AD_ENDSCREEN_CLASS) ||
+        node.id === 'movie_player' && node.querySelector(`.${AD_ENDSCREEN_CLASS}`)
     )
-    const sponsored = addedNodes.filter(node =>
-        ['YTD-AD-SLOT-RENDERER', 'YTD-PLAYER-LEGACY-DESKTOP-WATCH-ADS-RENDERER'].includes(node.tagName)
-    )
+    const sponsored = addedNodes.filter(node => SPONSORED_CLASSES.includes(node.tagName))
 
     if (adStarted) handleAd()
     if (adStopped && skipButton) {
@@ -104,19 +99,15 @@ function handleAd(needToCheck) {
 
 function handleAdEndScreen() {
     if (settings.autoSkip) {
-        const YTskipButton = document.querySelector('.ytp-ad-skip-button-modern')
-        YTskipButton.click()
+        const YTSkipButton = document.querySelector(`.${YT_SKIP_CLASS}`)
+        YTSkipButton.click()
     }
 }
 
 function handleSponsored(sponsored) {
     log('handling sponsored...')
     if (settings.hideSponsored) {
-        if (sponsored) {
-            sponsored.forEach(node => node.remove())
-        } else {
-            getSponsored().forEach(node => node.remove())
-        }
+        (sponsored || getSponsored()).forEach(node => node.remove())
     }
 }
 
@@ -133,12 +124,12 @@ async function init() {
     const [appContainer] = document.getElementsByTagName('ytd-app')
     if (appContainer) {
         log('found app container, initializing...')
-        // Start observer
-        observer.observe(appContainer, { childList: true, subtree: true })
         // Load settings
         browser.storage.sync.get('skipButtonSettings').then(({ skipButtonSettings }) => {
             if (skipButtonSettings) updateSettings(skipButtonSettings, true)
         })
+        // Start observer
+        observer.observe(appContainer, { childList: true, subtree: true })
         return true
     } else {
         // App container not ready, retry in 300 ms
@@ -152,13 +143,18 @@ function manualSkip() {
     document.querySelectorAll('video').forEach(video => skip(video))
 }
 
-console.log(`skipButton.js: loaded (host: ${window.location.host})`)
-const isYoutube = /^https?:\/\/([a-z]+\.)?youtube\.com.*/.test(window.location.toString())
-if (isYoutube) {
-    while (!init()) {}
-}
+(async () => {
+    console.log(`skipButton.js: loaded (host: ${window.location.host})`)
+    const isYoutube = /^https?:\/\/([a-z]+\.)?youtube\.com.*/.test(window.location.toString())
+    if (isYoutube) {
+        let initAttempts = 0
+        while (!await init() && initAttempts < 100) {
+            initAttempts++
+        }
 
-// Add event listeners for settings changes
-browser.storage.onChanged.addListener(changes => {
-    if (isYoutube && changes.skipButtonSettings) updateSettings(changes.skipButtonSettings.newValue)
-})
+        // Add event listeners for settings changes
+        browser.storage.onChanged.addListener(({ skipButtonSettings }) => {
+            if (skipButtonSettings) updateSettings(skipButtonSettings.newValue)
+        })
+    }
+})()
