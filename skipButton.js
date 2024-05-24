@@ -19,12 +19,19 @@ button.innerText = 'Skip >'
 
 const logging = false
 const observer = new MutationObserver(check)
-const AD_OVERLAY_CLASS = 'ytp-ad-player-overlay'
+const AD_OVERLAY_CLASS = 'ytp-ad-player-overlay-layout'
 const AD_ENDSCREEN_CLASS = 'ytp-ad-action-interstitial'
-const YT_SKIP_CLASS = 'ytp-ad-skip-button-modern'
-const SPONSORED_CLASSES = ['YTD-AD-SLOT-RENDERER', 'YTD-PLAYER-LEGACY-DESKTOP-WATCH-ADS-RENDERER']
+const YT_SKIP_CLASS = 'ytp-skip-ad-button'
+const SPONSORED_ELEMENTS = [
+    'YTD-AD-SLOT-RENDERER',
+    'YTD-PLAYER-LEGACY-DESKTOP-WATCH-ADS-RENDERER',
+    'YTD-PROMOTED-SPARKLES-WEB-RENDERER',
+    'YTD-STATEMENT-BANNER-RENDERER' // Large landing page banner
+]
+const POPUP_ELEMENT = 'YT-MEALBAR-PROMO-RENDERER'
+const POPUP_CLOSE_BUTTON = 'yt-button-renderer#dismiss-button'
 const adPlaying = () => document.querySelector(`.${AD_OVERLAY_CLASS}`) !== null
-const getSponsored = () => SPONSORED_CLASSES.flatMap(className => [...document.getElementsByTagName(className)])
+const getSponsored = () => SPONSORED_ELEMENTS.flatMap(tagName => [...document.getElementsByTagName(tagName)])
 const log = (message, ...args) => logging && console.log(`skipButton.js: ${message}`, ...args)
 
 let settings = {
@@ -62,7 +69,11 @@ function check(mutations) {
         node.classList?.contains(AD_ENDSCREEN_CLASS) ||
         node.id === 'movie_player' && node.querySelector(`.${AD_ENDSCREEN_CLASS}`)
     )
-    const sponsored = addedNodes.filter(node => SPONSORED_CLASSES.includes(node.tagName))
+    const sponsored = addedNodes.filter(node => 
+        SPONSORED_ELEMENTS.includes(node.tagName)
+        // || node.nodeType === Node.ELEMENT_NODE && SPONSORED_ELEMENTS.some(tagName => node.querySelector(tagName))
+    )
+    const premiumPopup = document.getElementsByTagName(POPUP_ELEMENT)
 
     if (adStarted) handleAd()
     if (adStopped && skipButton) {
@@ -71,6 +82,7 @@ function check(mutations) {
     }
     if (adEndScreen) handleAdEndScreen()
     if (sponsored.length) handleSponsored(sponsored)
+    if (premiumPopup.length) handlePopup(premiumPopup[0])
 
     if (!initialCheck) {
         // Check if ad was already playing before observer started
@@ -98,17 +110,27 @@ function handleAd(needToCheck) {
 }
 
 function handleAdEndScreen() {
+    log('handling endscreen...')
     if (settings.autoSkip) {
-        const YTSkipButton = document.querySelector(`.${YT_SKIP_CLASS}`)
-        YTSkipButton.click()
+        const YTSkipButton = document.querySelector(`[class*=${YT_SKIP_CLASS}]`)
+        YTSkipButton?.click()
     }
 }
 
 function handleSponsored(sponsored) {
     log('handling sponsored...')
     if (settings.hideSponsored) {
-        (sponsored || getSponsored()).forEach(node => node.remove())
+        (sponsored || getSponsored()).forEach(node => {
+            const parentContainer = node.closest('ytd-rich-item-renderer')
+            if (parentContainer) parentContainer.remove()
+            else node.remove()
+        })
     }
+}
+
+function handlePopup(popup) {
+    log('handling popup...', popup)
+    popup.querySelector(POPUP_CLOSE_BUTTON)?.click()
 }
 
 // Updates settings and runs check function
@@ -130,6 +152,8 @@ async function init() {
         })
         // Start observer
         observer.observe(appContainer, { childList: true, subtree: true })
+        // Remove existing sponsored elements
+        handleSponsored()
         return true
     } else {
         // App container not ready, retry in 300 ms
