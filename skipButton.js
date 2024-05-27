@@ -21,7 +21,7 @@ const logging = false
 const observer = new MutationObserver(check)
 const AD_OVERLAY_CLASS = 'ytp-ad-player-overlay-layout'
 const AD_ENDSCREEN_CLASS = 'ytp-ad-action-interstitial'
-const YT_SKIP_CLASS = 'ytp-skip-ad-button'
+const YT_SKIP_SELECTOR = '.ytp-skip-ad-button, .ytp-ad-skip-button-modern'
 const SPONSORED_ELEMENTS = [
     'YTD-AD-SLOT-RENDERER',
     'YTD-PLAYER-LEGACY-DESKTOP-WATCH-ADS-RENDERER',
@@ -112,8 +112,8 @@ function handleAd(needToCheck) {
 function handleAdEndScreen() {
     log('handling endscreen...')
     if (settings.autoSkip) {
-        const YTSkipButton = document.querySelector(`[class*=${YT_SKIP_CLASS}]`)
-        YTSkipButton?.click()
+        const YTSkipButtons = document.querySelector(YT_SKIP_SELECTOR)
+        YTSkipButtons?.click()
     }
 }
 
@@ -134,10 +134,9 @@ function handlePopup(popup) {
 }
 
 // Updates settings and runs check function
-function updateSettings(newSettings, dontCheck) {
+function updateSettings(newSettings) {
     log('settings update...')
     settings = newSettings
-    if (dontCheck) return
     handleAd(true)
     handleSponsored()
 }
@@ -148,7 +147,7 @@ async function init() {
         log('found app container, initializing...')
         // Load settings
         browser.storage.sync.get('skipButtonSettings').then(({ skipButtonSettings }) => {
-            if (skipButtonSettings) updateSettings(skipButtonSettings, true)
+            if (skipButtonSettings) updateSettings(skipButtonSettings)
         })
         // Start observer
         observer.observe(appContainer, { childList: true, subtree: true })
